@@ -12,6 +12,6 @@
 {
     IBOutlet UILabel *label;
 }
--(IBAction)accelerate:(id)sender;
+-(IBAction)pressedOn:(id)sender;
 -(IBAction)pressedOff:(id)sender;
 @end
