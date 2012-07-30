@@ -152,7 +152,7 @@
     
     float firstRPM = rpmValue;
     float dt = 0;
-    float minPitch = 0.5;
+//    float minPitch = 0.5;
     while(!buttonPressed){
         if(firstRPM - dt * 0.6 > 0){
             rpmValue = firstRPM - dt * 0.6;
