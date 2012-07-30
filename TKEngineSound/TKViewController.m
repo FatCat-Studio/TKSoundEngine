@@ -23,6 +23,7 @@
     NSDate *timeLastPressedOff;
     int lastOnRPM;
     int lastOffRPM;
+    float firstRPM;
     
     int mode;
     int gears;
@@ -78,9 +79,10 @@
     buttonPressed = FALSE;
     timeLastPressed = [NSDate date];
     timeLastPressedOff = [NSDate date];
-    gears = 5;
+    gears = 4;
     mode = 0;
-    gearNow = 0;
+    gearNow = 1;
+    firstRPM = rpmValue;
     
     [source stop];
     [source clear];
@@ -139,7 +141,7 @@
     ALBuffer *buffer = [audioOnBuffers objectAtIndex:2];
     [source play:buffer loop:YES];
     
-    float firstRPM = rpmValue;
+    firstRPM = rpmValue;
     float dt = 0;
     while(buttonPressed){
         dt = -[timeLastPressed timeIntervalSinceNow];
@@ -148,31 +150,10 @@
             source.pitch = 0.2 + 0.7 * rpmValue/3;
             source.volume = 1;
         }
-        label.text = [NSString stringWithFormat:@"%f",rpmValue];
+        [label performSelectorOnMainThread:@selector(setText:)
+                                withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                             waitUntilDone:NO];
     }
-
-//    ALBuffer *buffer = [audioOnBuffers objectAtIndex:(int)rpmValue];
-//    [source play:buffer loop:YES];
-//    
-//    float firstRPM = rpmValue;
-//    float dt = 0;
-//    while(buttonPressed){
-//        dt = -[timeLastPressed timeIntervalSinceNow];
-//        if(firstRPM + dt * 0.8 < 3){
-//            rpmValue = firstRPM + dt*0.8;
-//            float tmp = (rpmValue - (int)rpmValue);
-//            source.pitch = 0.6+ 0.5 * tmp;
-//            source.volume = 1 - 0.3 * tmp*tmp;
-//        }
-//        if( !((int)rpmValue == lastOnRPM)){
-//            [source stop];
-//            [source clear];
-//            ALBuffer *buffer = [audioOnBuffers objectAtIndex:(int)rpmValue];
-//            [source play:buffer loop:YES];
-//            lastOnRPM = (int)rpmValue;
-//        }
-//        label.text = [NSString stringWithFormat:@"%f",rpmValue];
-//    }
 }
 
 -(void)neutralOff{
@@ -181,7 +162,7 @@
     ALBuffer *buffer = [audioOffBuffers objectAtIndex:0];
     [source play:buffer loop:YES];
     
-    float firstRPM = rpmValue;
+    firstRPM = rpmValue;
     float dt = 0;
     while(!buttonPressed){
         if(firstRPM - dt * 0.6 > 0){
@@ -190,28 +171,10 @@
             source.pitch = 0.7 + 1.8 * rpmValue/3;
             source.volume = 1;
         }
-        label.text = [NSString stringWithFormat:@"%f",rpmValue];
+        [label performSelectorOnMainThread:@selector(setText:)
+                                withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                             waitUntilDone:NO];
     }
-//    float minPitch = 0.5;    
-//    float firstRPM = rpmValue;
-//    float dt = 0;
-//    while(!buttonPressed){
-//        dt = -[timeLastPressedOff timeIntervalSinceNow];
-//        if(firstRPM - dt * 0.6 > 0){
-//            rpmValue = firstRPM - dt * 0.6;
-//            float tmp = (rpmValue - (int)rpmValue);
-//            source.pitch = 0.6 + 0.5 * tmp;
-//            source.volume = 1 - 0.3 * tmp*tmp;
-//        }
-//        if(!((int)rpmValue == lastOffRPM)){
-//            [source stop];
-//            [source clear];
-//            ALBuffer *buffer = [audioOffBuffers objectAtIndex:(int)rpmValue];
-//            [source play:buffer loop:YES];
-//            lastOffRPM = (int)rpmValue;
-//        }
-//        label.text = [NSString stringWithFormat:@"%f",rpmValue];
-//    }
 }
 
 -(void)comfortOn{
@@ -220,13 +183,14 @@
     ALBuffer *buffer = [audioOnBuffers objectAtIndex:1];
     [source play:buffer loop:YES];
     
-    float firstRPM = rpmValue;
+    firstRPM = rpmValue;
     float dt = 0;
     while(buttonPressed){
         dt = -[timeLastPressed timeIntervalSinceNow];
+        
         if(firstRPM + dt * 0.8 < 2){
             rpmValue = firstRPM + dt*0.8;
-            source.pitch = 0.2 + 1 * rpmValue/3;
+            source.pitch = 0.4 + 0.4*rpmValue;
             source.volume = 1;
         } else{
             if (gearNow < gears) {
@@ -234,20 +198,27 @@
                 [source clear];
                 ALBuffer *buffer = [audioOffBuffers objectAtIndex:1];
                 [source play:buffer loop:YES];
+                firstRPM = rpmValue;
                 timeLastPressed = [NSDate date];
-                while (firstRPM - dt * 1.5 > 1) {
-                    dt = -[timeLastPressed timeIntervalSinceNow];
-                    rpmValue = firstRPM - dt * 1.5;
+                dt = -[timeLastPressed timeIntervalSinceNow];
+                while (firstRPM - dt * 2 > 1) {
+                    rpmValue = firstRPM - dt * 2;
                     float tmp = rpmValue - (int)rpmValue;
-                    source.pitch = 1 + tmp;
+                    source.pitch = 0.8 + tmp*0.4;
                     source.volume = 1;
+                    dt = -[timeLastPressed timeIntervalSinceNow];
+                    [label performSelectorOnMainThread:@selector(setText:)
+                                            withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                                         waitUntilDone:NO];
                 }
                 firstRPM = 1;
                 timeLastPressed = [NSDate date];
                 gearNow++;
             }
         }
-        label.text = [NSString stringWithFormat:@"%f",rpmValue];
+        [label performSelectorOnMainThread:@selector(setText:)
+                                withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                             waitUntilDone:NO];
     }
 }
 
@@ -257,13 +228,13 @@
     ALBuffer *buffer = [audioOffBuffers objectAtIndex:1];
     [source play:buffer loop:YES];
     
-    float firstRPM = rpmValue;
+    firstRPM = rpmValue;
     float dt = 0;
     while(!buttonPressed){
         dt = -[timeLastPressed timeIntervalSinceNow];
         if(firstRPM - dt * 0.6 > 1){
             rpmValue = firstRPM - dt * 0.6;
-            source.pitch = 0.2 + 1 * rpmValue/3;
+            source.pitch = 0.5 + 0.3*rpmValue;
             source.volume = 1;
         } else{
             if (gearNow > 1) {
@@ -271,20 +242,33 @@
                 [source clear];
                 ALBuffer *buffer = [audioOnBuffers objectAtIndex:1];
                 [source play:buffer loop:YES];
+                firstRPM = rpmValue;
                 timeLastPressed = [NSDate date];
-                while (firstRPM + dt * 0.6 < 2) {
-                    dt = -[timeLastPressed timeIntervalSinceNow];
-                    rpmValue = firstRPM + dt * 0.6;
+                dt = -[timeLastPressed timeIntervalSinceNow];
+                while (firstRPM + dt * 2.5 < 2) {
+                    rpmValue = firstRPM + dt * 2.5;
                     float tmp = rpmValue - (int)rpmValue;
-                    source.pitch = 1 + tmp;
+                    source.pitch = 0.9 + tmp*0.2;
                     source.volume = 1;
+                    dt = -[timeLastPressed timeIntervalSinceNow];
+                    [label performSelectorOnMainThread:@selector(setText:)
+                                            withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                                         waitUntilDone:NO];
                 }
                 firstRPM = 2;
                 timeLastPressed = [NSDate date];
                 gearNow--;
+            } else{
+                if(firstRPM - dt * 0.6 > 0){
+                    rpmValue = firstRPM - dt * 0.6;
+                    source.pitch = 0.5 + 0.3*rpmValue;
+                    source.volume = 1;
+                }
             }
         }
-        label.text = [NSString stringWithFormat:@"%f",rpmValue];
+        [label performSelectorOnMainThread:@selector(setText:)
+                                withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                             waitUntilDone:NO];
     }
 }
 
