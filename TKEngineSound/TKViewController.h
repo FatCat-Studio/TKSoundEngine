@@ -14,4 +14,5 @@
 }
 -(IBAction)pressedOn:(id)sender;
 -(IBAction)pressedOff:(id)sender;
+-(IBAction)startStop:(id)sender;
 @end
