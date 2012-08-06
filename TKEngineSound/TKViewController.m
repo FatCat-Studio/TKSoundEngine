@@ -116,6 +116,7 @@
 -(void)startStopSound{
     [source stop];
     [source clear];
+    gearNow = 1;
     ALBuffer *buffer = [audioStartIdle objectAtIndex:0];
     [source play:buffer loop:NO];
     
@@ -141,7 +142,7 @@
                 [self performSelectorInBackground:@selector(comfortOn) withObject:self];
                 break;
             case 2:
-                //[self performSelectorInBackground:@selector(sportOn) withObject:self];
+                [self performSelectorInBackground:@selector(sportOn) withObject:self];
                 break;
             default:
                 [self performSelectorInBackground:@selector(stopEngine) withObject:self];
@@ -163,7 +164,7 @@
                 [self performSelectorInBackground:@selector(comfortOff) withObject:self];
                 break;
             case 2:
-                //[self performSelectorInBackground:@selector(sportOff) withObject:self];
+                [self performSelectorInBackground:@selector(sportOff) withObject:self];
                 break;
             default:
                 [self performSelectorInBackground:@selector(stopEngine) withObject:self];
@@ -205,8 +206,8 @@
         firstRPM = rpmValue;
         float dt = 0;
         while(!buttonPressed){
-            if(firstRPM - dt * 0.8 > 0){
-                rpmValue = firstRPM - dt * 0.8;
+            if(firstRPM - dt * 0.9 > 0){
+                rpmValue = firstRPM - dt * 0.9;
                 dt = -[timeLastPressedOff timeIntervalSinceNow];
                 source.pitch = 0.7 + 1.8 * rpmValue/3;
                 source.volume = 1;
@@ -291,11 +292,11 @@
                     firstRPM = rpmValue;
                     timeLastPressed = [NSDate date];
                     dt = -[timeLastPressed timeIntervalSinceNow];
-                    while (firstRPM + dt * 5 < 2) {
+                    while (firstRPM + dt * 4 < 2) {
                         rpmValue = firstRPM + dt * 5;
                         float tmp = rpmValue - (int)rpmValue;
-                        source.pitch = 0.8 + tmp*0.3;
-                        source.volume = 1;
+                        source.pitch = 0.6 + tmp*0.3;
+                        source.volume = 0.8;
                         dt = -[timeLastPressed timeIntervalSinceNow];
                         [label performSelectorOnMainThread:@selector(setText:)
                                                 withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
@@ -308,6 +309,106 @@
                     if(firstRPM - dt * 0.6 > 0){
                         rpmValue = firstRPM - dt * 0.6;
                         source.pitch = 0.4 + 0.3*rpmValue;
+                        source.volume = 1;
+                    }
+                }
+            }
+            [label performSelectorOnMainThread:@selector(setText:)
+                                    withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
+                                 waitUntilDone:NO];
+        }
+    }
+}
+
+-(void)sportOn{
+    if(started){
+        [source stop];
+        [source clear];
+        ALBuffer *buffer = [audioOnBuffers objectAtIndex:2];
+        [source play:buffer loop:YES];
+        
+        firstRPM = rpmValue;
+        float dt = 0;
+        while(buttonPressed){
+            dt = -[timeLastPressed timeIntervalSinceNow];
+            
+            if(firstRPM + dt * 0.7 < 3){
+                rpmValue = firstRPM + dt*0.7;
+                source.pitch = 0.3 + 0.9*rpmValue/3;
+                source.volume = 1;
+            } else{
+                if (gearNow < gears) {
+                    [source stop];
+                    [source clear];
+                    ALBuffer *buffer = [audioOffBuffers objectAtIndex:2];
+                    [source play:buffer loop:YES];
+                    firstRPM = rpmValue;
+                    timeLastPressed = [NSDate date];
+                    dt = -[timeLastPressed timeIntervalSinceNow];
+                    while (firstRPM - dt * 4 > 2) {
+                        rpmValue = firstRPM - dt * 4;
+                        float tmp = rpmValue - (int)rpmValue;
+                        source.pitch = 0.8 + tmp*0.4;
+                        source.volume = 1;
+                        dt = -[timeLastPressed timeIntervalSinceNow];
+                        [label performSelectorOnMainThread:@selector(setText:)
+                                                withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
+                                             waitUntilDone:NO];
+                    }
+                    firstRPM = 2;
+                    timeLastPressed = [NSDate date];
+                    gearNow++;
+                }
+            }
+            [label performSelectorOnMainThread:@selector(setText:)
+                                    withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
+                                 waitUntilDone:NO];
+        }
+        
+    }
+}
+
+-(void)sportOff{
+    if(started){
+        [source stop];
+        [source clear];
+        ALBuffer *buffer = [audioOffBuffers objectAtIndex:2];
+        [source play:buffer loop:YES];
+        
+        firstRPM = rpmValue;
+        float dt = 0;
+        while(!buttonPressed){
+            dt = -[timeLastPressed timeIntervalSinceNow];
+            if(firstRPM - dt * 0.7 > 2){
+                rpmValue = firstRPM - dt * 0.7;
+                source.pitch = 0.4 + 0.8*rpmValue/3;
+                source.volume = 1;
+            } else{
+                if (gearNow > 1) {
+                    [source stop];
+                    [source clear];
+                    ALBuffer *buffer = [audioOnBuffers objectAtIndex:2];
+                    [source play:buffer loop:YES];
+                    firstRPM = rpmValue;
+                    timeLastPressed = [NSDate date];
+                    dt = -[timeLastPressed timeIntervalSinceNow];
+                    while (firstRPM + dt * 4 < 2.9) {
+                        rpmValue = firstRPM + dt * 4;
+                        float tmp = rpmValue - (int)rpmValue;
+                        source.pitch = 0.6 + tmp*0.3;
+                        source.volume = 0.7;
+                        dt = -[timeLastPressed timeIntervalSinceNow];
+                        [label performSelectorOnMainThread:@selector(setText:)
+                                                withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
+                                             waitUntilDone:NO];
+                    }
+                    firstRPM = 2.9;
+                    timeLastPressed = [NSDate date];
+                    gearNow--;
+                } else{
+                    if(firstRPM - dt * 0.7 > 0){
+                        rpmValue = firstRPM - dt * 0.7;
+                        source.pitch = 0.4 + 0.8*rpmValue/3;
                         source.volume = 1;
                     }
                 }
