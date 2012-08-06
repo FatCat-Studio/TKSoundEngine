@@ -80,7 +80,7 @@
     timeLastPressed = [NSDate date];
     timeLastPressedOff = [NSDate date];
     gears = 4;
-    mode = 1;
+    mode = [modes selectedSegmentIndex];
     gearNow = 1;
     started = false;
     firstRPM = rpmValue;
@@ -92,6 +92,13 @@
     source.volume = 1;
     lastOnRPM = -1;
     lastOffRPM = -1;
+}
+
+-(IBAction)setMode:(id)sender{
+    mode = [modes selectedSegmentIndex];
+    [source stop];
+    [source clear];
+    rpmValue = 0;
 }
 
 -(IBAction)startStop:(id)sender{
@@ -134,7 +141,7 @@
                 [self performSelectorInBackground:@selector(comfortOn) withObject:self];
                 break;
             case 2:
-                [self performSelectorInBackground:@selector(sportOn) withObject:self];
+                //[self performSelectorInBackground:@selector(sportOn) withObject:self];
                 break;
             default:
                 [self performSelectorInBackground:@selector(stopEngine) withObject:self];
@@ -156,7 +163,7 @@
                 [self performSelectorInBackground:@selector(comfortOff) withObject:self];
                 break;
             case 2:
-                [self performSelectorInBackground:@selector(sportOff) withObject:self];
+                //[self performSelectorInBackground:@selector(sportOff) withObject:self];
                 break;
             default:
                 [self performSelectorInBackground:@selector(stopEngine) withObject:self];
@@ -176,13 +183,13 @@
         float dt = 0;
         while(buttonPressed){
             dt = -[timeLastPressed timeIntervalSinceNow];
-            if(firstRPM + dt * 0.8 < 3){
-                rpmValue = firstRPM + dt * 0.8;
+            if(firstRPM + dt * 1.6 < 3){
+                rpmValue = firstRPM + dt * 1.6;
                 source.pitch = 0.2 + 0.7 * rpmValue/3;
                 source.volume = 1;
             }
             [label performSelectorOnMainThread:@selector(setText:)
-                                    withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                                    withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
                                  waitUntilDone:NO];
         }
     }
@@ -198,14 +205,14 @@
         firstRPM = rpmValue;
         float dt = 0;
         while(!buttonPressed){
-            if(firstRPM - dt * 0.6 > 0){
-                rpmValue = firstRPM - dt * 0.6;
+            if(firstRPM - dt * 0.8 > 0){
+                rpmValue = firstRPM - dt * 0.8;
                 dt = -[timeLastPressedOff timeIntervalSinceNow];
                 source.pitch = 0.7 + 1.8 * rpmValue/3;
                 source.volume = 1;
             }
             [label performSelectorOnMainThread:@selector(setText:)
-                                    withObject:[NSString stringWithFormat:@"%f",rpmValue]
+                                    withObject:[NSString stringWithFormat:@"%d",(int)(4000*rpmValue/2)]
                                  waitUntilDone:NO];
         }
 
@@ -300,7 +307,7 @@
                 } else{
                     if(firstRPM - dt * 0.6 > 0){
                         rpmValue = firstRPM - dt * 0.6;
-                        source.pitch = 0.5 + 0.3*rpmValue;
+                        source.pitch = 0.4 + 0.3*rpmValue;
                         source.volume = 1;
                     }
                 }

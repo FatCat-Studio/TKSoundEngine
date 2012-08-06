@@ -11,7 +11,9 @@
 @interface TKViewController : UIViewController
 {
     IBOutlet UILabel *label;
+    IBOutlet UISegmentedControl *modes;
 }
+-(IBAction)setMode:(id)sender;
 -(IBAction)pressedOn:(id)sender;
 -(IBAction)pressedOff:(id)sender;
 -(IBAction)startStop:(id)sender;
